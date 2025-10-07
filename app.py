@@ -3,108 +3,90 @@ import plotly.express as px
 import pandas as pd
 import random
 import time
+import json
+import speech_recognition as sr
 
-# -----------------------------------
-# ⚙️ Basic Config
-# -----------------------------------
-st.set_page_config(
-    page_title="EduPulse — Smart Classroom Engagement System",
-    page_icon="🎓",
-    layout="wide",
-)
+
+
+# -------------------------------
+# Load language file
+# -------------------------------
+def load_language(lang_code):
+    with open(f"languages/{lang_code}.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+# -------------------------------
+# Page config
+# -------------------------------
+st.set_page_config(page_title="EduPulse", page_icon="🎓", layout="wide")
+
+# Sidebar language selection
+lang_choice = st.sidebar.selectbox("🌐 Choose Language / भाषा चुनें", ["English", "Hindi"])
+lang_code = "en" if lang_choice == "English" else "hi"
+L = load_language(lang_code)
 
 # Sidebar Navigation
-st.sidebar.title("EduPulse 🎓")
-st.sidebar.markdown("### Smart Classroom Engagement System")
+st.sidebar.title(L["sidebar_title"])
+st.sidebar.markdown(f"### {L['sidebar_desc']}")
 page = st.sidebar.radio(
     "Navigate",
     [
-        "🧠 Emotion Detection",
-        
-        "💬 Engagement Analysis",
-        
-        "📊 Teacher Dashboard",
-        
-        "🗣 Voice Feedback",
-        
-        "🧾 Summary Report",
-        
-        "⚙ Settings",
+        L["emotion_detection"],
+        L["engagement_analysis"],
+        L["teacher_dashboard"],
+        L["voice_feedback"],
+        L["summary_report"],
+        L["settings"],
     ],
 )
 
 # -----------------------------------
 # 🧠 Emotion Detection Page
 # -----------------------------------
-if page == "🧠 Emotion Detection":
-    st.title("🧠 Real-time Emotion Detection")
-
-    st.write("System captures student facial expressions and detects emotions in real time.")
+if page == L["emotion_detection"]:
+    st.title(L["emotion_detection"])
+    st.write(L["note"])
     col1, col2 = st.columns([2, 1])
-
     with col1:
-        st.image("https://cdn.pixabay.com/photo/2016/03/31/19/57/avatar-1295390_1280.png", caption="Live Camera Feed (Mock)")
-
+        st.image("https://cdn.pixabay.com/photo/2016/03/31/19/57/avatar-1295390_1280.png", caption=L["live_camera_feed"])
     with col2:
         emotion = random.choice(["😊 Happy", "😐 Neutral", "😕 Confused", "😞 Sad", "🥱 Bored"])
         confidence = random.randint(70, 98)
-        st.metric("Detected Emotion", emotion)
-        st.metric("Confidence", f"{confidence}%")
-
-    st.info("Note: In full version, webcam and FER/DeepFace model will be used for live detection.")
+        st.metric(L["detected_emotion"], emotion)
+        st.metric(L["confidence"], f"{confidence}%")
 
 # -----------------------------------
 # 💬 Engagement Analysis Page
 # -----------------------------------
-elif page == "💬 Engagement Analysis":
-    st.title("💬 Engagement Analysis")
-    st.write("Track student engagement levels over time.")
-
-    # Simulated engagement data
+elif page == L["engagement_analysis"]:
+    st.title(L["engagement_analysis"])
+    st.write("Track student engagement levels over time.")  # Can translate later if needed
     times = [f"10:{i:02d}" for i in range(1, 11)]
     scores = [random.randint(40, 90) for _ in range(10)]
     emotions = ["Happy", "Neutral", "Confused", "Bored", "Sad"]
 
-    # Charts
-    fig1 = px.line(
-        x=times,
-        y=scores,
-        title="📈 Engagement Trend (Last 10 Minutes)",
-        labels={"x": "Time", "y": "Engagement Score"},
-    )
-
-    fig2 = px.pie(
-        names=emotions,
-        values=[random.randint(5, 40) for _ in emotions],
-        title="🎭 Emotion Distribution",
-    )
-
+    fig1 = px.line(x=times, y=scores, title="📈 Engagement Trend (Last 10 Minutes)", labels={"x": "Time", "y": "Engagement Score"})
+    fig2 = px.pie(names=emotions, values=[random.randint(5, 40) for _ in emotions], title="🎭 Emotion Distribution")
     col1, col2 = st.columns(2)
     col1.plotly_chart(fig1, use_container_width=True)
     col2.plotly_chart(fig2, use_container_width=True)
-
     avg = sum(scores) // len(scores)
-    st.metric("Average Engagement", f"{avg}%")
+    st.metric(L["avg_engagement"], f"{avg}%")
 
 # -----------------------------------
 # 📊 Teacher Dashboard Page
 # -----------------------------------
-elif page == "📊 Teacher Dashboard":
-    st.title("📊 Teacher Dashboard")
-    st.write("Monitor class engagement, emotions, and alerts in real time.")
-
-    # Simulated metrics
+elif page == L["teacher_dashboard"]:
+    st.title(L["teacher_dashboard"])
+    st.write(L["monitor_class"])
     engagement_score = random.randint(35, 95)
-    st.metric("Current Engagement Score", f"{engagement_score}%")
-
-    # Engagement status feedback
+    st.metric(L["avg_engagement"], f"{engagement_score}%")
     if engagement_score > 70:
         st.success("🟢 Students are highly engaged! Great job!")
     elif 50 <= engagement_score <= 70:
         st.warning("🟡 Engagement moderate — consider adding short Q&A.")
     else:
         st.error("🔴 Engagement low — students may be distracted. Try an activity!")
-
     st.subheader("Emotion Heatmap (Sample Data)")
     df = pd.DataFrame({
         "Student": [f"Student {i}" for i in range(1, 11)],
@@ -114,60 +96,62 @@ elif page == "📊 Teacher Dashboard":
     })
     fig = px.imshow(df.set_index("Student").T, text_auto=True, color_continuous_scale="RdYlGn")
     st.plotly_chart(fig, use_container_width=True)
-
-    st.info("Alerts will appear here when engagement drops or student voice is missing.")
+    st.info(L["alerts_info"])
 
 # -----------------------------------
 # 🗣 Voice Feedback Page
 # -----------------------------------
-elif page == "🗣 Voice Feedback":
-    st.title("🗣 Student Voice Feedback")
-    st.write("System listens for student responses when teacher asks a question.")
-
-    start = st.button("🎤 Start Listening")
-
+elif page == L["voice_feedback"]:
+    st.title(L["voice_feedback"])
+    
+    # Choose translation target
+    target_lang = st.radio("Translate Speech to:", ["English", "Hindi"])
+    target_code = "en" if target_lang == "English" else "hi"
+    
+    start = st.button(L["start_listening"])
+    
     if start:
         with st.spinner("Listening for student response (10 seconds)..."):
-            time.sleep(3)
-            voice_detected = random.choice([True, False])
+            recognizer = sr.Recognizer()
+            with sr.Microphone() as source:
+                try:
+                    audio = recognizer.listen(source, timeout=10)
+                    text = recognizer.recognize_google(audio)
+                    st.info(f"🎙 Original: {text}")
+                    
+                    translated_text = translate_text(text, target_code)
+                    st.success(f"🌐 Translated ({target_lang}): {translated_text}")
+                except sr.WaitTimeoutError:
+                    st.error("⚠ No voice detected — feedback sent to teacher dashboard.")
+                except sr.UnknownValueError:
+                    st.error("⚠ Could not understand speech — feedback sent to teacher dashboard.")
+                except Exception as e:
+                    st.error(f"⚠ Error: {e}")
 
-        if voice_detected:
-            st.success("🎧 Voice detected — student answered.")
-        else:
-            st.error("⚠ No voice detected — feedback sent to teacher dashboard.")
-
-    st.caption("Powered by SpeechRecognition + PyAudio (in full version).")
 
 # -----------------------------------
 # 🧾 Summary Report Page
 # -----------------------------------
-elif page == "🧾 Summary Report":
-    st.title("🧾 Class Summary Report")
-    st.write("View and download session summary after class.")
-
+elif page == L["summary_report"]:
+    st.title(L["summary_report"])
+    st.write(L["view_download_summary"])
     avg_engagement = random.randint(60, 90)
-    st.metric("Average Engagement", f"{avg_engagement}%")
-
+    st.metric(L["avg_engagement"], f"{avg_engagement}%")
     emotion_summary = pd.DataFrame({
         "Emotion": ["Happy", "Neutral", "Confused", "Bored", "Sad"],
         "Count": [random.randint(5, 25) for _ in range(5)]
     })
-
     st.bar_chart(emotion_summary.set_index("Emotion"))
-
-    if st.button("📄 Generate PDF Report"):
-        st.success("✅ Report generated and saved locally as `class_summary.pdf` (mock).")
+    if st.button(L["generate_pdf"]):
+        st.success(L["report_generated"])
 
 # -----------------------------------
 # ⚙ Settings Page
 # -----------------------------------
-elif page == "⚙ Settings":
-    st.title("⚙ Settings")
-    st.write("Customize EduPulse settings for your classroom.")
-
-    lang = st.selectbox("🌐 Choose Language", ["English", "Hindi"])
-    threshold = st.slider("🎯 Engagement Alert Threshold", 0, 100, 50)
-    st.file_uploader("🔊 Upload Custom Alert Sound (optional)", type=["mp3", "wav"])
-
+elif page == L["settings"]:
+    st.title(L["settings"])
+    lang = st.selectbox(L["choose_language"], ["English", "Hindi"])
+    threshold = st.slider(L["alert_threshold"], 0, 100, 50)
+    st.file_uploader(L["upload_sound"], type=["mp3", "wav"])
     st.info(f"Language set to {lang}, alert threshold = {threshold}%")
     st.caption("All changes saved locally.")
