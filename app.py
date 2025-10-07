@@ -4,6 +4,7 @@ import pandas as pd
 import random
 import time
 import json
+import os
 import speech_recognition as sr
 
 
@@ -33,6 +34,7 @@ page = st.sidebar.radio(
     [
         L["emotion_detection"],
         L["engagement_analysis"],
+        L["student_dashboard"], 
         L["teacher_dashboard"],
         L["voice_feedback"],
         L["summary_report"],
@@ -72,6 +74,27 @@ elif page == L["engagement_analysis"]:
     col2.plotly_chart(fig2, use_container_width=True)
     avg = sum(scores) // len(scores)
     st.metric(L["avg_engagement"], f"{avg}%")
+
+# -----------------------------------
+# 🎓 Student Dashboard (NEW PAGE)
+# -----------------------------------
+if page == L["student_dashboard"]:
+    st.title(L["student_dashboard"])
+    st.markdown("Welcome to your learning area! 🎥 Watch your offline recorded lectures below.")
+
+    video_folder = r"C:\Users\VisheshSingh\Downloads"
+    if not os.path.exists(video_folder):
+        os.makedirs(video_folder)
+        st.warning("📁 'videos' folder created. Please add some .mp4 lecture videos inside it.")
+    else:
+        videos = [f for f in os.listdir(video_folder) if f.endswith(".mp4")]
+        if videos:
+            selected_video = st.selectbox("Select a Lecture", videos)
+            video_path = os.path.join(video_folder, selected_video)
+            st.video(video_path)
+            st.success(f"Now playing: {selected_video}")
+        else:
+            st.info("No video lectures found. Please add some `.mp4` files to the `videos/` folder.")
 
 # -----------------------------------
 # 📊 Teacher Dashboard Page
@@ -152,6 +175,6 @@ elif page == L["settings"]:
     st.title(L["settings"])
     lang = st.selectbox(L["choose_language"], ["English", "Hindi"])
     threshold = st.slider(L["alert_threshold"], 0, 100, 50)
-    st.file_uploader(L["upload_sound"], type=["mp3", "wav"])
+    st.file_uploader(L["upload_sound"], type=["mp4", "wav"])
     st.info(f"Language set to {lang}, alert threshold = {threshold}%")
     st.caption("All changes saved locally.")
