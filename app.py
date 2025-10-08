@@ -54,10 +54,7 @@ if page == L["emotion_detection"]:
     with col1:
         # Streamlit device camera input
         camera_image = st.camera_input("📷 Live Camera Feed")
-        
-        if camera_image:
-            st.image(camera_image, caption=L["live_camera_feed"])
-    
+
     with col2:
         # Sample random emotion metrics
         emotion = random.choice(["😊 Happy", "😐 Neutral", "😕 Confused", "😞 Sad", "🥱 Bored"])
