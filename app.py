@@ -48,10 +48,18 @@ page = st.sidebar.radio(
 if page == L["emotion_detection"]:
     st.title(L["emotion_detection"])
     st.write(L["note"])
+    
     col1, col2 = st.columns([2, 1])
+    
     with col1:
-        st.image("https://cdn.pixabay.com/photo/2016/03/31/19/57/avatar-1295390_1280.png", caption=L["live_camera_feed"])
+        # Streamlit device camera input
+        camera_image = st.camera_input("📷 Live Camera Feed")
+        
+        if camera_image:
+            st.image(camera_image, caption=L["live_camera_feed"])
+    
     with col2:
+        # Sample random emotion metrics
         emotion = random.choice(["😊 Happy", "😐 Neutral", "😕 Confused", "😞 Sad", "🥱 Bored"])
         confidence = random.randint(70, 98)
         st.metric(L["detected_emotion"], emotion)
